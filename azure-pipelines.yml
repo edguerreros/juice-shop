@@ -1,1 +1,34 @@
-https://github.com/edguerreros/juice-shop
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  name: default
+
+stages:
+- stage:
+  displayName: Obtener Aplicacion
+  jobs:
+    - job: 
+      steps:
+      - script: echo Descargando la App!
+        displayName: 'Descargando la App'
+- stage:
+  displayName: 'Realizando Pruebas de Seguridad'
+  jobs:
+    - job: 
+      steps:
+      - script: fortifyupdate -locale es
+        displayName: 'Actualizando las reglas a la ultima version'
+      - script: sourceanalyzer -b juiceshop -clean -v
+        displayName: 'Limpiando temporales'
+      - script: sourceanalyzer -b juiceshop .
+        displayName: 'Traduccion al modelo Fortify'
+      - script: sourceanalyzer -b juiceshop -scan -f juiceshop.fpr -verbose
+        displayName: 'Generacion del Archivo FPR'
+      - script: fortifyclient -url http://10.0.1.1:8080/ssc -authtoken 66efaf80-e1a4-4bd5-8ca6-003e936ae2ed uploadFPR -file juiceshop.fpr -applicationVersionID 10013
+        displayName: 'Cargando archivo a Fortify SSC'
